@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "serve dist/code-analyser -l tcp://0.0.0.0:${PORT:-4200}",
+    "start": "node server.js",
     "dev": "ng serve",
     "build": "ng build --configuration production",
     "watch": "ng build --watch --configuration development",
@@ -19,8 +19,8 @@
     "@angular/platform-browser": "^16.2.0",
     "@angular/platform-browser-dynamic": "^16.2.0",
     "@angular/router": "^16.2.0",
+    "express": "^4.18.2",
     "rxjs": "~7.8.0",
-    "serve": "^14.2.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.13.0"
   },

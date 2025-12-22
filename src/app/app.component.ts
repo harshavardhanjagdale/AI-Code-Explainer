@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { trigger, transition, style, animate, query, stagger } from '@angular/animations';
-import { environment } from '../environments/environment';
 
 interface LineExplanation {
   lineNumber: number;
@@ -59,8 +58,6 @@ interface CodeExample {
   ]
 })
 export class AppComponent implements OnInit {
-  private apiKey: string = '';
-
   codeInput: string = '';
   selectedLanguage: string = 'javascript';
 
@@ -280,9 +277,7 @@ LIMIT 20;`
 
   ngOnInit(): void {
     this.totalAnalyses = parseInt(localStorage.getItem('total_analyses') || '0', 10);
-    
-    this.apiKey = environment.openaiApiKey;
-    console.log('✅ API Key loaded from environment');
+    console.log('✅ Code Analyzer initialized');
   }
 
   showNotification(message: string, icon: string = '✓'): void {
@@ -509,11 +504,6 @@ LIMIT 20;`
       return;
     }
 
-    if (!this.apiKey.trim()) {
-      this.errorMessage = 'API key not configured. Please check your environment file.';
-      return;
-    }
-
     this.isAnalyzing = true;
     this.errorMessage = '';
     this.explanations = [];
@@ -650,8 +640,7 @@ Respond with ONLY the JSON object.`;
 
   private async callOpenAI(prompt: string): Promise<string> {
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${this.apiKey.trim()}`
+      'Content-Type': 'application/json'
     });
 
     const body = {
@@ -671,8 +660,9 @@ Respond with ONLY the JSON object.`;
     };
 
     try {
+      // Call our backend proxy instead of OpenAI directly
       const response: any = await this.http.post(
-        'https://api.openai.com/v1/chat/completions',
+        '/api/analyze',
         body,
         { headers }
       ).toPromise();
@@ -681,14 +671,14 @@ Respond with ONLY the JSON object.`;
         this.stats.tokensUsed = response.usage?.total_tokens || 0;
         return response.choices[0].message.content;
       }
-      throw new Error('Invalid response from OpenAI');
+      throw new Error('Invalid response from API');
     } catch (error: any) {
       if (error.status === 401) {
-        throw new Error('Invalid API key. Please check your OpenAI API key.');
+        throw new Error('Invalid API key. Please contact the administrator.');
       } else if (error.status === 429) {
         throw new Error('Rate limit exceeded. Please wait a moment and try again.');
       } else if (error.status === 500) {
-        throw new Error('OpenAI server error. Please try again later.');
+        throw new Error('Server error. Please try again later.');
       }
       throw error;
     }
